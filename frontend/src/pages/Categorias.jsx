@@ -40,14 +40,16 @@ export default function Categorias() {
         <table className="table">
           <thead>
             <tr>
+              <th>N°</th>
               <th>Nombre</th>
               <th>Descripción</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((c) => (
+            {filtered.map((c, i) => (
               <tr key={c.id}>
+                <td className="text-muted">{i + 1}</td>
                 <td>{c.name}</td>
                 <td>{c.description}</td>
                 <td className="actions">
@@ -57,7 +59,7 @@ export default function Categorias() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="3" className="text-center">No se encontraron categorías</td></tr>
+              <tr><td colSpan="4" className="text-center">No se encontraron categorías</td></tr>
             )}
           </tbody>
         </table>

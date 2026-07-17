@@ -42,6 +42,7 @@ export default function Empleados() {
         <table className="table">
           <thead>
             <tr>
+              <th>N°</th>
               <th>Nombre completo</th>
               <th>Departamento</th>
               <th>Sede</th>
@@ -51,8 +52,9 @@ export default function Empleados() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((e) => (
+            {filtered.map((e, i) => (
               <tr key={e.id}>
+                <td className="text-muted">{i + 1}</td>
                 <td>{e.fullName}</td>
                 <td>{e.department}</td>
                 <td>{e.sede || <span className="text-muted">—</span>}</td>
@@ -65,7 +67,7 @@ export default function Empleados() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="6" className="text-center">No se encontraron empleados</td></tr>
+              <tr><td colSpan="7" className="text-center">No se encontraron empleados</td></tr>
             )}
           </tbody>
         </table>

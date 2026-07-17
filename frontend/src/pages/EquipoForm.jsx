@@ -84,9 +84,14 @@ export default function EquipoForm() {
   };
 
   const selectConsultorio = (name) => {
-    setForm({ ...form, employeeId: '' });
-    setEmpSearch(name);
-    setEmpOpen(false);
+    const emp = employees.find((e) => e.fullName === name);
+    if (emp) {
+      selectEmployee(emp);
+    } else {
+      setForm({ ...form, employeeId: '' });
+      setEmpSearch(name);
+      setEmpOpen(false);
+    }
   };
 
   const startCamera = async () => {

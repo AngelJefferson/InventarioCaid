@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, deleteProduct, bulkCreateProducts } from '../api/productService';
+import { getProducts, deleteProduct, bulkCreateProducts, bulkDeleteProducts } from '../api/productService';
 import { getCategories } from '../api/categoryService';
 import { getEmployees } from '../api/employeeService';
 import * as XLSX from 'xlsx';
@@ -39,6 +39,7 @@ export default function Equipos() {
   const [importData, setImportData] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState('');
+  const [selected, setSelected] = useState([]);
 
   const load = () => {
     setLoading(true);
@@ -54,6 +55,23 @@ export default function Equipos() {
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar este equipo?')) return;
     await deleteProduct(id);
+    load();
+  };
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.length === filtered.length) setSelected([]);
+    else setSelected(filtered.map((p) => p.id));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.length === 0) return;
+    if (!confirm(`¿Eliminar ${selected.length} equipo(s)?`)) return;
+    await bulkDeleteProducts(selected);
+    setSelected([]);
     load();
   };
 
@@ -163,6 +181,7 @@ export default function Equipos() {
           <button className="btn btn-accent" onClick={exportExcel}>📥 Exportar</button>
           <button className="btn btn-primary" onClick={() => { setShowImport(true); setImportMsg(''); setImportData(null); }}><svg width="16" height="16" viewBox="0 0 16 16" style={{verticalAlign:'middle',marginRight:4}}><rect x="1" y="1" width="14" height="14" rx="2" fill="#217346"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="Arial">X</text></svg> Cargar Excel</button>
           <Link to="/equipos/nuevo" className="btn btn-success">+ Nuevo Equipo</Link>
+          {selected.length > 0 && <button className="btn btn-danger" onClick={handleBulkDelete}>🗑 Eliminar {selected.length}</button>}
         </div>
       </div>
       <div className="search-bar">
@@ -173,6 +192,8 @@ export default function Equipos() {
         <table className="table">
           <thead>
             <tr>
+              <th><input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={toggleSelectAll} /></th>
+              <th>N°</th>
               <th>Tipo de Equipo</th>
               <th>Marca</th>
               <th>Modelo</th>
@@ -186,8 +207,10 @@ export default function Equipos() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p) => (
+            {filtered.map((p, i) => (
               <tr key={p.id}>
+                <td><input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggleSelect(p.id)} /></td>
+                <td className="text-muted">{i + 1}</td>
                 <td>{p.name}</td>
                 <td>{p.categoryName}</td>
                 <td>{p.model || <span className="text-muted">—</span>}</td>
@@ -204,7 +227,7 @@ export default function Equipos() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="10" className="text-center">No se encontraron equipos</td></tr>
+              <tr><td colSpan="12" className="text-center">No se encontraron equipos</td></tr>
             )}
           </tbody>
         </table>

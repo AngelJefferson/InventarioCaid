@@ -94,6 +94,17 @@ using (var scope = app.Services.CreateScope())
         var userHash = BCrypt.Net.BCrypt.HashPassword("user123");
         await userRepo.AddAsync(new DomainUser("user", userHash, "user@inventory.com", "User"));
     }
+
+    var employeeRepo = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+    var consultorios = new[] { "Consultorio 1", "Consultorio 2", "Consultorio 3", "Consultorio 4" };
+    foreach (var name in consultorios)
+    {
+        if (!await employeeRepo.Employees.AnyAsync(e => e.FullName == name))
+        {
+            employeeRepo.Employees.Add(new Employee(name, "Consultorios", "CAID", "Consultorio"));
+        }
+    }
+    if (employeeRepo is DbContext empCtx) await empCtx.SaveChangesAsync();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

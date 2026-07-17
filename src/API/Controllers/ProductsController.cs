@@ -65,4 +65,12 @@ public class ProductsController : ControllerBase
         await _mediator.Send(new DeleteProductCommand(id));
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("bulk")]
+    public async Task<IActionResult> BulkDelete([FromBody] BulkDeleteProductsCommand command)
+    {
+        var count = await _mediator.Send(command);
+        return Ok(new { deleted = count });
+    }
 }
