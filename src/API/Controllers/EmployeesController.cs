@@ -57,4 +57,12 @@ public class EmployeesController : ControllerBase
         await _mediator.Send(new DeleteEmployeeCommand(id));
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("bulk")]
+    public async Task<IActionResult> BulkDelete([FromBody] BulkDeleteEmployeesCommand command)
+    {
+        var count = await _mediator.Send(command);
+        return Ok(new { deleted = count });
+    }
 }

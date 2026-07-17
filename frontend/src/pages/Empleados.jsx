@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getEmployees, deleteEmployee } from '../api/employeeService';
+import { getEmployees, deleteEmployee, bulkDeleteEmployees } from '../api/employeeService';
 
 export default function Empleados() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState([]);
 
   const load = () => {
     setLoading(true);
@@ -13,6 +14,23 @@ export default function Empleados() {
   };
 
   useEffect(load, []);
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.length === filtered.length) setSelected([]);
+    else setSelected(filtered.map((e) => e.id));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.length === 0) return;
+    if (!confirm(`¿Eliminar ${selected.length} empleado(s)?`)) return;
+    await bulkDeleteEmployees(selected);
+    setSelected([]);
+    load();
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar este empleado?')) return;
@@ -32,7 +50,10 @@ export default function Empleados() {
     <div>
       <div className="page-header">
         <h1>Empleados</h1>
-        <Link to="/empleados/nuevo" className="btn btn-primary">+ Nuevo Empleado</Link>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link to="/empleados/nuevo" className="btn btn-primary">+ Nuevo Empleado</Link>
+          {selected.length > 0 && <button className="btn btn-danger" onClick={handleBulkDelete}>🗑 Eliminar {selected.length}</button>}
+        </div>
       </div>
       <div className="search-bar">
         <input placeholder="Buscar empleado por nombre o departamento..." value={search}
@@ -42,6 +63,7 @@ export default function Empleados() {
         <table className="table">
           <thead>
             <tr>
+              <th><input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={toggleSelectAll} /></th>
               <th>N°</th>
               <th>Nombre completo</th>
               <th>Departamento</th>
@@ -54,6 +76,7 @@ export default function Empleados() {
           <tbody>
             {filtered.map((e, i) => (
               <tr key={e.id}>
+                <td><input type="checkbox" checked={selected.includes(e.id)} onChange={() => toggleSelect(e.id)} /></td>
                 <td className="text-muted">{i + 1}</td>
                 <td>{e.fullName}</td>
                 <td>{e.department}</td>
@@ -67,7 +90,7 @@ export default function Empleados() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="7" className="text-center">No se encontraron empleados</td></tr>
+              <tr><td colSpan="8" className="text-center">No se encontraron empleados</td></tr>
             )}
           </tbody>
         </table>

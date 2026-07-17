@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getCategories, deleteCategory } from '../api/categoryService';
+import { getCategories, deleteCategory, bulkDeleteCategories } from '../api/categoryService';
 
 export default function Categorias() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState([]);
 
   const load = () => {
     setLoading(true);
@@ -13,6 +14,23 @@ export default function Categorias() {
   };
 
   useEffect(load, []);
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.length === filtered.length) setSelected([]);
+    else setSelected(filtered.map((c) => c.id));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.length === 0) return;
+    if (!confirm(`¿Eliminar ${selected.length} categoría(s)?`)) return;
+    await bulkDeleteCategories(selected);
+    setSelected([]);
+    load();
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar esta categoría?')) return;
@@ -30,7 +48,10 @@ export default function Categorias() {
     <div>
       <div className="page-header">
         <h1>Categorías</h1>
-        <Link to="/categorias/nueva" className="btn btn-primary">+ Nueva Categoría</Link>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link to="/categorias/nueva" className="btn btn-primary">+ Nueva Categoría</Link>
+          {selected.length > 0 && <button className="btn btn-danger" onClick={handleBulkDelete}>🗑 Eliminar {selected.length}</button>}
+        </div>
       </div>
       <div className="search-bar">
         <input placeholder="Buscar categoría..." value={search}
@@ -40,6 +61,7 @@ export default function Categorias() {
         <table className="table">
           <thead>
             <tr>
+              <th><input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={toggleSelectAll} /></th>
               <th>N°</th>
               <th>Nombre</th>
               <th>Descripción</th>
@@ -49,6 +71,7 @@ export default function Categorias() {
           <tbody>
             {filtered.map((c, i) => (
               <tr key={c.id}>
+                <td><input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} /></td>
                 <td className="text-muted">{i + 1}</td>
                 <td>{c.name}</td>
                 <td>{c.description}</td>
@@ -59,7 +82,7 @@ export default function Categorias() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="4" className="text-center">No se encontraron categorías</td></tr>
+              <tr><td colSpan="5" className="text-center">No se encontraron categorías</td></tr>
             )}
           </tbody>
         </table>
